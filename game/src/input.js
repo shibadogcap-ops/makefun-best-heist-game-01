@@ -1,53 +1,92 @@
-// Keyboard and pointer input. Held keys give a steering direction; one-shot presses (start or
-// restart, pause) are queued as bit flags and taken once by the loop, so a press between two
-// frames is never lost and never counted twice.
+// Keyboard and pointer input for MIDNIGHT VAULT. Held keys (WASD/arrows, Shift) steer
+// the thief; one-shot presses (vent, toss, EMP, menu keys) go into a pressed-set. The
+// edge getters (vent, tossClicked, emp) consume their flag on read so a press fires on
+// exactly one simulation step; main clears whatever is left each frame with endFrame().
+import { WORLD } from './config.js';
 
-export const ACTION_CONFIRM = 1;
-export const ACTION_PAUSE = 2;
+const HELD_KEYS = {
+  KeyW: 'up', ArrowUp: 'up',
+  KeyS: 'down', ArrowDown: 'down',
+  KeyA: 'left', ArrowLeft: 'left',
+  KeyD: 'right', ArrowRight: 'right',
+  ShiftLeft: 'sneak', ShiftRight: 'sneak',
+};
 
-const LEFT = new Set(['ArrowLeft', 'KeyA']);
-const RIGHT = new Set(['ArrowRight', 'KeyD']);
-const CONFIRM = new Set(['Space', 'Enter']);
-const PAUSE = new Set(['KeyP', 'Escape']);
+const EDGE_KEYS = {
+  KeyE: 'vent', KeyV: 'vent',
+  KeyQ: 'toss',
+  KeyF: 'emp',
+  Enter: 'start', Space: 'start',
+  KeyR: 'restart',
+  KeyP: 'pause', Escape: 'pause',
+  KeyH: 'help',
+};
 
-export function createInput(target) {
-  let left = false;
-  let right = false;
-  let actions = 0;
+export function createInput(canvas) {
+  const pressed = new Set();
+  const input = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    sneak: false,
+    mouseX: WORLD.width / 2,
+    mouseY: WORLD.height / 2,
+    anyKey: false,
+    get vent() { return take('vent'); },
+    get tossClicked() { return take('toss'); },
+    get emp() { return take('emp'); },
+    wasPressed(name) { return pressed.has(name); },
+    endFrame() {
+      pressed.clear();
+      input.anyKey = false;
+    },
+  };
+
+  function take(name) {
+    if (!pressed.has(name)) return false;
+    pressed.delete(name);
+    return true;
+  }
+
+  function toWorld(event) {
+    const rect = canvas.getBoundingClientRect();
+    input.mouseX = ((event.clientX - rect.left) / rect.width) * WORLD.width;
+    input.mouseY = ((event.clientY - rect.top) / rect.height) * WORLD.height;
+  }
 
   window.addEventListener('keydown', (event) => {
-    if (LEFT.has(event.code)) left = true;
-    else if (RIGHT.has(event.code)) right = true;
-    else if (CONFIRM.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_CONFIRM;
-    } else if (PAUSE.has(event.code)) {
-      if (!event.repeat) actions |= ACTION_PAUSE;
-    } else return;
-    event.preventDefault();
+    input.anyKey = true;
+    const held = HELD_KEYS[event.code];
+    if (held) {
+      input[held] = true;
+      event.preventDefault();
+      return;
+    }
+    const edge = EDGE_KEYS[event.code];
+    if (edge) {
+      if (!event.repeat) pressed.add(edge);
+      event.preventDefault();
+    }
   });
   window.addEventListener('keyup', (event) => {
-    if (LEFT.has(event.code)) left = false;
-    else if (RIGHT.has(event.code)) right = false;
+    const held = HELD_KEYS[event.code];
+    if (held) input[held] = false;
   });
   // A key released while the tab is hidden never sends keyup: let go of everything on blur.
   window.addEventListener('blur', () => {
-    left = false;
-    right = false;
-  });
-  target.addEventListener('pointerdown', () => {
-    actions |= ACTION_CONFIRM;
+    input.up = input.down = input.left = input.right = input.sneak = false;
   });
 
-  return {
-    /** -1 for left, 1 for right, 0 for neither or both. */
-    direction() {
-      return (right ? 1 : 0) - (left ? 1 : 0);
-    },
-    /** The one-shot presses since the last call, as ACTION_* flags. */
-    takeActions() {
-      const taken = actions;
-      actions = 0;
-      return taken;
-    },
-  };
+  canvas.addEventListener('pointermove', toWorld);
+  canvas.addEventListener('pointerdown', (event) => {
+    toWorld(event);
+    if (event.button === 0) {
+      pressed.add('toss');
+      pressed.add('start');
+      input.anyKey = true;
+    }
+  });
+
+  return input;
 }
