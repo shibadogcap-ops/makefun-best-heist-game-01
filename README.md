@@ -31,8 +31,8 @@ Vanilla JavaScript ES modules on Canvas 2D — no build step, no dependencies. `
 - `game/src/shots.js` — deterministic `?shot=` screenshot scenes built by replaying real game steps.
 - `serve.ts` — a ~60-line static file server (Node standard library only).
 
-![make.fun bounty](https://make.fun/badge/best-heist-game-20261122-0559.svg)
-![rank](https://make.fun/badge/best-heist-game-20261122-0559/shibadogcap-ops/makefun-best-heist-game-01/rank.svg)
-![reward](https://make.fun/badge/best-heist-game-20261122-0559/shibadogcap-ops/makefun-best-heist-game-01/reward.svg)
+[![make.fun · best-heist-game-20261122-0559](https://make.fun/badge/best-heist-game-20261122-0559.svg)](https://make.fun/bounty/best-heist-game-20261122-0559?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
+[![rank](https://make.fun/badge/best-heist-game-20261122-0559/shibadogcap-ops/makefun-best-heist-game-01/rank.svg)](https://make.fun/bounty/best-heist-game-20261122-0559/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
+[![reward](https://make.fun/badge/best-heist-game-20261122-0559/shibadogcap-ops/makefun-best-heist-game-01/reward.svg)](https://make.fun/bounty/best-heist-game-20261122-0559?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
 
 Play the bounty at https://make.fun/bounty/best-heist-game-20261122-0559
